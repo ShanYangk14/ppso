@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phương pháp dây cung</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="logo">Phương pháp dây cung</h1>
+    
+        <label for="equation">Nhập phương trình f(x):</label>
+        <input type="text" id="equation" placeholder="Ví dụ: x**3 - x - 2">
+    
+        <label for="a">Nhập a:</label>
+        <input type="number" id="a" placeholder="Ví dụ: 1">
+    
+        <label for="b">Nhập b:</label>
+        <input type="number" id="b" placeholder="Ví dụ: 2">
+    
+        <label for="epsilon">Sai số ε:</label>
+        <input type="number" id="epsilon" step="0.0001" placeholder="Ví dụ: 0.0001">
+    
+        <label for="maxIterations">Số lần lặp tối đa:</label>
+        <input type="number" id="maxIterations" placeholder="Ví dụ: 100">
+    
+        <button onclick="calculateSecantMethod()">Tính toán</button>
+    
+        <div id="error" class="error"></div>
+    </div>
+    
+    <div class="result">
+        <h3>Kết quả</h3>
+        <p id="solution"></p>
+    </div>
+    
+    <div class="result-table">
+        <h3>Bảng kết quả</h3>
+        <table id="resultTable">
+            <thead>
+                <tr>
+                    <th>Lần lặp</th>
+                    <th>x0</th>
+                    <th>x1</th>
+                    <th>f(x0)</th>
+                    <th>f(x1)</th>
+                    <th>x2</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>   
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
