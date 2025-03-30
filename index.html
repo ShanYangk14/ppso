@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phương pháp dây cung</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <script src="script.js"></script>
+    <script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
 </head>
 <body>
 
@@ -12,8 +18,8 @@
         <h1 class="logo">Phương pháp dây cung</h1>
     
         <label for="equation">Nhập phương trình f(x):</label>
-        <input type="text" id="equation" placeholder="Ví dụ: x**3 - x - 2">
-    
+        <input type="text" id="equation" placeholder="Ví dụ: x^3 - 2*x - 2">
+        
         <label for="a">Nhập a:</label>
         <input type="number" id="a" placeholder="Ví dụ: 1">
     
@@ -30,12 +36,17 @@
     
         <div id="error" class="error"></div>
     </div>
-    
+
     <div class="result">
         <h3>Kết quả</h3>
         <p id="solution"></p>
     </div>
-    
+
+    <div class="steps">
+        <h3>Chi tiết từng bước</h3>
+        <div id="steps"></div>
+    </div>
+
     <div class="result-table">
         <h3>Bảng kết quả</h3>
         <table id="resultTable">
@@ -52,8 +63,6 @@
             <tbody></tbody>
         </table>
     </div>   
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
-    <script src="script.js"></script>
+
 </body>
 </html>
