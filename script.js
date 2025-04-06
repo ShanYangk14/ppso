@@ -1,5 +1,4 @@
 function calculateSecantMethod() {
-    // Xóa nội dung cũ
     document.getElementById("solution").innerHTML = "";
     document.getElementById("error").innerHTML = "";
     document.getElementById("steps").innerHTML = "";
@@ -13,7 +12,7 @@ function calculateSecantMethod() {
         let maxIterations = parseInt(document.getElementById("maxIterations").value);
         let equation = document.getElementById("equation").value.trim();
 
-        // Kiểm tra dữ liệu đầu vào hợp lệ
+        // Input validation
         if (isNaN(x0) || isNaN(x1) || isNaN(epsilon) || isNaN(maxIterations)) {
             document.getElementById("error").innerText = "❌ Lỗi: Vui lòng nhập đầy đủ các giá trị số!";
             return;
@@ -44,7 +43,30 @@ function calculateSecantMethod() {
 
         let iter = 0, x2;
         let stepsHTML = ``;
+        let secantPointsX = [x0, x1];
+        let secantPointsY = [f(x0), f(x1)];
+        let errors = []; // Store errors for each iteration
 
+        // Initial step (iter = 0) with x0 and x1
+        stepsHTML += `
+            <div class="step-box">
+                <strong>Bước ${iter} (Khởi tạo):</strong>
+                <p>Giá trị ban đầu: \\( x_0 = ${x0.toFixed(6)}, x_1 = ${x1.toFixed(6)} \\)</p>
+                <p>\\( f(x_0) = ${f(x0).toFixed(6)}, f(x_1) = ${f(x1).toFixed(6)} \\)</p>
+            </div>`;
+        
+        let row = `<tr>
+            <td>${iter}</td>
+            <td>${x0.toFixed/*******/(6)}</td>
+            <td>${x1.toFixed(6)}</td>
+            <td>${f(x0).toFixed(6)}</td>
+            <td>${f(x1).toFixed(6)}</td>
+            <td>-</td>
+            <td>-</td>
+        </tr>`;
+        tbody.innerHTML += row;
+
+        // Secant iterations
         while (iter < maxIterations) {
             let f0 = f(x0);
             let f1 = f(x1);
@@ -54,61 +76,101 @@ function calculateSecantMethod() {
                 return;
             }
 
-            // Tính x2 bằng công thức dây cung
             x2 = x1 - (f1 * (x1 - x0)) / (f1 - f0);
 
-            // Kiểm tra lỗi NaN hoặc Infinity
             if (!isFinite(x2) || isNaN(x2)) {
                 document.getElementById("error").innerText = "❌ Lỗi: Giá trị tính toán không hợp lệ!";
                 return;
             }
 
-            // Hiển thị công thức từng bước
+            let error = Math.abs(x2 - x1); // Calculate absolute error
+            errors.push(error);
+
             stepsHTML += `
                 <div class="step-box">
                     <strong>Bước ${iter + 1}:</strong> 
-                    <p>Giá trị hiện tại: \\( x_{${iter}} = ${x0.toFixed(6)}, x_{${iter+1}} = ${x1.toFixed(6)} \\)</p>
-                    <p>\\( f(x_{${iter}}) = ${f0.toFixed(6)}, \quad f(x_{${iter+1}}) = ${f1.toFixed(6)} \\)</p>
+                    <p>Giá trị hiện tại: \\( x_${iter} = ${x0.toFixed(6)}, x_${iter+1} = ${x1.toFixed(6)} \\)</p>
+                    <p>\\( f(x_${iter}) = ${f0.toFixed(6)}, f(x_${iter+1}) = ${f1.toFixed(6)} \\)</p>
                     <p>
-                        \\[ x_{${iter+2}} = x_{${iter+1}} - 
-                        \\frac{f(x_{${iter+1}}) \\times (x_{${iter+1}} - x_{${iter}})}
-                        {f(x_{${iter+1}}) - f(x_{${iter}})} \\]
+                        \\[ x_${iter+2} = x_${iter+1} - 
+                        \\frac{f(x_${iter+1}) \\times (x_${iter+1} - x_${iter})}
+                        {f(x_${iter+1}) - f(x_${iter})} \\]
                     </p>
-                    <p>Kết quả: \\( x_{${iter+2}} \approx \\mathbf{${x2.toFixed(6)}} \\)</p>
+                    <p>Kết quả: \\( x_${iter+2} = \\mathbf{${x2.toFixed(6)}} \\)</p>
+                    <p>Sai số: \\( |x_${iter+2} - x_${iter+1}| = ${error.toFixed(6)} \\)</p>
                 </div>`;
 
-            // Thêm vào bảng kết quả
-            let row = `<tr>
+            row = `<tr>
                 <td>${iter + 1}</td>
                 <td>${x0.toFixed(6)}</td>
                 <td>${x1.toFixed(6)}</td>
                 <td>${f0.toFixed(6)}</td>
                 <td>${f1.toFixed(6)}</td>
                 <td><strong>${x2.toFixed(6)}</strong></td>
+                <td>${error.toFixed(6)}</td>
             </tr>`;
             tbody.innerHTML += row;
 
-            // Kiểm tra điều kiện dừng
-            if (Math.abs(x2 - x1) < epsilon) {
+            secantPointsX.push(x2);
+            secantPointsY.push(f(x2));
+
+            if (error < epsilon) {
+                let finalValue = f(x2);
                 document.getElementById("solution").innerHTML = `
-                    <strong>✅ Nghiệm gần đúng:</strong> <span class="solution-highlight">${x2.toFixed(6)}</span> 
+                    <strong>✅ Nghiệm gần đúng:</strong> <span class="solution-highlight">${x2.toFixed(6)}</span>
                     sau <strong>${iter + 1}</strong> lần lặp.
+                    <br><strong>f(x) tại nghiệm:</strong> ${finalValue.toFixed(6)}
+                    <br><strong>Sai số cuối:</strong> ${error.toFixed(6)}
                 `;
                 break;
             }
 
-            // Cập nhật giá trị cho vòng lặp tiếp theo
             x0 = x1;
             x1 = x2;
             iter++;
         }
 
         document.getElementById("steps").innerHTML = stepsHTML;
-        try {
-            MathJax.typeset();
-        } catch (e) {
-            console.error("MathJax error:", e);
+        MathJax.typeset();
+
+        // Generate graph data
+        let xMin = Math.min(...secantPointsX) - 1;
+        let xMax = Math.max(...secantPointsX) + 1;
+        let xValues = [];
+        let yValues = [];
+        for (let x = xMin; x <= xMax; x += 0.1) {
+            xValues.push(x);
+            yValues.push(f(x));
         }
+
+        // Plotly data
+        let functionTrace = {
+            x: xValues,
+            y: yValues,
+            type: 'scatter',
+            mode: 'lines',
+            name: 'f(x)',
+            line: { color: 'blue' }
+        };
+
+        let secantTrace = {
+            x: secantPointsX,
+            y: secantPointsY,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Secant Iterations',
+            line: { color: 'red', dash: 'dash' },
+            marker: { size: 8 }
+        };
+
+        let layout = {
+            title: 'Secant Method Visualization',
+            xaxis: { title: 'x' },
+            yaxis: { title: 'f(x)' },
+            showlegend: true
+        };
+
+        Plotly.newPlot('plotlyGraph', [functionTrace, secantTrace], layout);
 
     } catch (error) {
         console.error(error);
