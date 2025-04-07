@@ -1,5 +1,6 @@
 function calculateSecantMethod() {
     document.getElementById("solution").innerHTML = "";
+    document.getElementById("mValue").innerHTML = "";
     document.getElementById("error").innerHTML = "";
     document.getElementById("steps").innerHTML = "";
     let tbody = document.querySelector("#resultTable tbody");
@@ -9,16 +10,11 @@ function calculateSecantMethod() {
         let x0 = parseFloat(document.getElementById("a").value);
         let x1 = parseFloat(document.getElementById("b").value);
         let epsilon = parseFloat(document.getElementById("epsilon").value);
-        let maxIterations = parseInt(document.getElementById("maxIterations").value);
         let equation = document.getElementById("equation").value.trim();
 
         // Input validation
-        if (isNaN(x0) || isNaN(x1) || isNaN(epsilon) || isNaN(maxIterations)) {
+        if (isNaN(x0) || isNaN(x1) || isNaN(epsilon)) {
             document.getElementById("error").innerText = "❌ Lỗi: Vui lòng nhập đầy đủ các giá trị số!";
-            return;
-        }
-        if (maxIterations <= 0) {
-            document.getElementById("error").innerText = "❌ Lỗi: Số lần lặp phải lớn hơn 0!";
             return;
         }
         if (epsilon <= 0) {
@@ -41,11 +37,54 @@ function calculateSecantMethod() {
             }
         }
 
+        // Tính đạo hàm bậc nhất của f(x)
+        let derivative;
+        try {
+            derivative = math.derivative(equation, 'x').toString();
+        } catch (error) {
+            document.getElementById("error").innerText = "❌ Lỗi: Không thể tính đạo hàm của phương trình!";
+            throw error;
+        }
+
+        function fPrime(x) {
+            try {
+                let result = math.evaluate(derivative, { x: x });
+                if (!isFinite(result)) throw new Error("Đạo hàm không hợp lệ");
+                return result;
+            } catch (error) {
+                document.getElementById("error").innerText = "❌ Lỗi: Không thể tính giá trị đạo hàm!";
+                throw error;
+            }
+        }
+
+        // Tìm giá trị nhỏ nhất của |f'(x)| trong khoảng [a, b] để làm m
+        let m = Infinity;
+        let step = (x1 - x0) / 100; // Chia khoảng [a, b] thành 100 điểm để tìm m
+        for (let x = x0; x <= x1; x += step) {
+            let fPrimeValue = Math.abs(fPrime(x));
+            if (fPrimeValue < m && fPrimeValue > 0) {
+                m = fPrimeValue;
+            }
+        }
+        if (m === Infinity || m === 0) {
+            document.getElementById("error").innerText = "❌ Lỗi: Không thể xác định giá trị m (đạo hàm bằng 0 hoặc không hợp lệ)!";
+            return;
+        }
+
+        // Hiển thị giá trị m trong phần kết quả
+        document.getElementById("mValue").innerHTML = `<strong>Giá trị m (min |f'(x)|):</strong> ${m.toFixed(6)}`;
+
         let iter = 0, x2;
         let stepsHTML = ``;
         let secantPointsX = [x0, x1];
         let secantPointsY = [f(x0), f(x1)];
-        let errors = []; // Store errors for each iteration
+        let errors = [];
+
+        // Biến để kiểm tra vòng lặp vô cực
+        let stagnationCount = 0;
+        const stagnationThreshold = 5; // Số lần lặp liên tiếp không thay đổi để coi là vô cực
+        const stagnationTolerance = 1e-10; // Ngưỡng để coi là "không thay đổi"
+        let prevX2 = null;
 
         // Initial step (iter = 0) with x0 and x1
         stepsHTML += `
@@ -53,11 +92,12 @@ function calculateSecantMethod() {
                 <strong>Bước ${iter} (Khởi tạo):</strong>
                 <p>Giá trị ban đầu: \\( x_0 = ${x0.toFixed(6)}, x_1 = ${x1.toFixed(6)} \\)</p>
                 <p>\\( f(x_0) = ${f(x0).toFixed(6)}, f(x_1) = ${f(x1).toFixed(6)} \\)</p>
+                <p>Giá trị m (min |f'(x)|): ${m.toFixed(6)}</p>
             </div>`;
         
         let row = `<tr>
             <td>${iter}</td>
-            <td>${x0.toFixed/*******/(6)}</td>
+            <td>${x0.toFixed(6)}</td>
             <td>${x1.toFixed(6)}</td>
             <td>${f(x0).toFixed(6)}</td>
             <td>${f(x1).toFixed(6)}</td>
@@ -67,7 +107,7 @@ function calculateSecantMethod() {
         tbody.innerHTML += row;
 
         // Secant iterations
-        while (iter < maxIterations) {
+        while (true) { // Lặp vô hạn cho đến khi tìm được nghiệm hoặc phát hiện vòng lặp vô cực
             let f0 = f(x0);
             let f1 = f(x1);
 
@@ -83,7 +123,24 @@ function calculateSecantMethod() {
                 return;
             }
 
-            let error = Math.abs(x2 - x1); // Calculate absolute error
+            // Kiểm tra vòng lặp vô cực
+            if (prevX2 !== null) {
+                let diff = Math.abs(x2 - prevX2);
+                if (diff < stagnationTolerance) {
+                    stagnationCount++;
+                    if (stagnationCount >= stagnationThreshold) {
+                        document.getElementById("error").innerText = "⚠️ Lỗi: Vòng lặp có thể vô cực, phương pháp không hội tụ!";
+                        return;
+                    }
+                } else {
+                    stagnationCount = 0; // Reset nếu giá trị thay đổi đáng kể
+                }
+            }
+            prevX2 = x2;
+
+            // Tính sai số mới: |f(x2)| / m
+            let fx2 = f(x2);
+            let error = Math.abs(fx2) / m;
             errors.push(error);
 
             stepsHTML += `
@@ -97,7 +154,7 @@ function calculateSecantMethod() {
                         {f(x_${iter+1}) - f(x_${iter})} \\]
                     </p>
                     <p>Kết quả: \\( x_${iter+2} = \\mathbf{${x2.toFixed(6)}} \\)</p>
-                    <p>Sai số: \\( |x_${iter+2} - x_${iter+1}| = ${error.toFixed(6)} \\)</p>
+                    <p>Sai số: \\( \\frac{|f(x_${iter+2})|}{m} = \\frac{|${fx2.toFixed(6)}|}{${m.toFixed(6)}} = ${error.toFixed(6)} \\)</p>
                 </div>`;
 
             row = `<tr>
@@ -112,7 +169,7 @@ function calculateSecantMethod() {
             tbody.innerHTML += row;
 
             secantPointsX.push(x2);
-            secantPointsY.push(f(x2));
+            secantPointsY.push(fx2);
 
             if (error < epsilon) {
                 let finalValue = f(x2);
@@ -143,6 +200,10 @@ function calculateSecantMethod() {
             yValues.push(f(x));
         }
 
+        // Tính toán phạm vi trục y dựa trên giá trị thực tế
+        let yMin = Math.min(...yValues, ...secantPointsY) - 1;
+        let yMax = Math.max(...yValues, ...secantPointsY) + 1;
+
         // Plotly data
         let functionTrace = {
             x: xValues,
@@ -163,15 +224,40 @@ function calculateSecantMethod() {
             marker: { size: 8 }
         };
 
+        // Define layout with enhanced axes
         let layout = {
             title: 'Secant Method Visualization',
-            xaxis: { title: 'x' },
-            yaxis: { title: 'f(x)' },
-            showlegend: true
+            xaxis: {
+                title: 'Trục X',
+                zeroline: true,
+                zerolinewidth: 2,
+                zerolinecolor: '#000',
+                gridcolor: '#ddd',
+                gridwidth: 1,
+                range: [xMin, xMax]
+            },
+            yaxis: {
+                title: 'Trục Y (f(x))',
+                zeroline: true,
+                zerolinewidth: 2,
+                zerolinecolor: '#000',
+                gridcolor: '#ddd',
+                gridwidth: 1,
+                range: [yMin, yMax],
+                scaleanchor: 'x',
+                scaleratio: 1
+            },
+            showlegend: true,
+            plot_bgcolor: '#f9f9f9',
+            paper_bgcolor: '#fff',
+            margin: { t: 40, b: 40, l: 40, r: 40 },
+            autosize: true
         };
 
-        Plotly.newPlot('plotlyGraph', [functionTrace, secantTrace], layout);
+        document.getElementById('plotlyGraph').style.width = '100%';
+        document.getElementById('plotlyGraph').style.height = '400px';
 
+        Plotly.newPlot('plotlyGraph', [functionTrace, secantTrace], layout);
     } catch (error) {
         console.error(error);
         document.getElementById("error").innerText = "❌ Lỗi: Đã xảy ra lỗi không xác định!";

@@ -15,22 +15,26 @@
         <div class="left-column">
             <div class="container">
                 <h1 class="logo">Phương pháp dây cung</h1>
-                <label for="equation">f(x):</label>
-                <input type="text" id="equation" placeholder="x^3 - 2*x - 2">
-                <label for="a">a:</label>
-                <input type="number" id="a" placeholder="1">
-                <label for="b">b:</label>
-                <input type="number" id="b" placeholder="2">
-                <label for="epsilon">ε:</label>
-                <input type="number" id="epsilon" step="0.0001" placeholder="0.0001">
-                <label for="maxIterations">Lặp tối đa:</label>
-                <input type="number" id="maxIterations" placeholder="100">
-                <button onclick="calculateSecantMethod()">Tính</button>
+                <form id="inputForm">
+                    <label for="equation">f(x):</label>
+                    <input type="text" id="equation" placeholder="x^3 - 2*x - 2" required>
+                    <label for="a">a:</label>
+                    <input type="number" id="a" placeholder="1" step="any" required>
+                    <label for="b">b:</label>
+                    <input type="number" id="b" placeholder="2" step="any" required>
+                    <label for="epsilon">ε:</label>
+                    <input type="number" id="epsilon" step="0.0001" placeholder="0.0001" required>
+                    <div class="button-group">
+                        <button type="button" onclick="calculateSecantMethod()">Tính</button>
+                        <button type="button" onclick="resetForm()" class="reset-btn">Xóa</button>
+                    </div>
+                </form>
                 <div id="error" class="error"></div>
             </div>
             <div class="result">
                 <h3>Kết quả</h3>
                 <p id="solution"></p>
+                <p id="mValue" class="m-value"></p>
             </div>
             <div class="steps">
                 <h3>Các bước</h3>
@@ -40,26 +44,49 @@
         <div class="right-column">
             <div class="graph">
                 <h3>Biểu đồ</h3>
-                <div id="plotlyGraph" style="width: 100%; height: 400px;"></div>
+                <div id="plotlyGraph" class="plotly-graph"></div>
             </div>
             <div class="result-table">
                 <h3>Bảng kết quả</h3>
-                <table id="resultTable">
-                    <thead>
-                        <tr>
-                            <th>Lần lặp</th>
-                            <th>x0</th>
-                            <th>x1</th>
-                            <th>f(x0)</th>
-                            <th>f(x1)</th>
-                            <th>x2</th>
-                            <th>Sai số</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-wrapper">
+                    <table id="resultTable">
+                        <thead>
+                            <tr>
+                                <th>Lần lặp</th>
+                                <th>x0</th>
+                                <th>x1</th>
+                                <th>f(x0)</th>
+                                <th>f(x1)</th>
+                                <th>x2</th>
+                                <th>Sai số</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Thêm phần footer chứa thông tin thành viên đóng góp -->
+    <footer class="footer">
+        <div class="contributors">
+            <h4>Thành viên đóng góp</h4>
+            <p>Shan Chen Yang</p>
+            <p>Nguyễn Hồng Anh</p>
+        </div>
+    </footer>
+
+    <script>
+        function resetForm() {
+            document.getElementById("inputForm").reset();
+            document.getElementById("solution").innerHTML = "";
+            document.getElementById("mValue").innerHTML = "";
+            document.getElementById("error").innerHTML = "";
+            document.getElementById("steps").innerHTML = "";
+            document.querySelector("#resultTable tbody").innerHTML = "";
+            Plotly.purge('plotlyGraph');
+        }
+    </script>
 </body>
 </html>
